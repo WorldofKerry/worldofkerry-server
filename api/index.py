@@ -7,6 +7,7 @@ from gridfs import GridFS
 from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
+from flask import send_from_directory
 
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env.local"))
 
@@ -18,6 +19,11 @@ client = MongoClient(MONGODB_URI)
 db = client['file_uploads']
 fs = GridFS(db)
 
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
 @app.route('/')
 def index():
     return '''
@@ -26,7 +32,7 @@ def index():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="shortcut icon" href="{{ url_for('static', filename='data/favicon.ico') }}">
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
         <title>Upload and Download Files</title>
     </head>
     <body>
