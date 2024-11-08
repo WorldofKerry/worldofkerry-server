@@ -12,11 +12,8 @@ load_dotenv(os.path.join(os.path.dirname(__file__), ".env.local"))
 
 MONGODB_URI = os.getenv("MONGODB_URI")
 
-print(f"Mongo URI: {MONGODB_URI}")
-
 app = Flask(__name__)
 
-# client = MongoClient("mongodb+srv://readwrite:Pk1JnYa1qwo63aac@cluster0.wdytait.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 client = MongoClient(MONGODB_URI)
 db = client['file_uploads']
 fs = GridFS(db)
@@ -29,6 +26,7 @@ def index():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="shortcut icon" href="{{ url_for('static', filename='data/favicon.ico') }}">
         <title>Upload and Download Files</title>
     </head>
     <body>
