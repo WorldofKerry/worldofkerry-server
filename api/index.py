@@ -23,18 +23,18 @@ def index():
         <title>Upload and Download Files</title>
     </head>
     <body>
-        <h2>Upload File to MongoDB</h2>
+        <h2>Upload File</h2>
         <form action="/upload" method="post" enctype="multipart/form-data">
             <input type="file" name="file" required>
             <br/>
-            <input type="text" name="file_id" placeholder="Enter custom file ID (optional)">
+            <input type="text" name="file_id" placeholder="File ID (optional)">
             <br/>
             <button type="submit">Upload</button>
         </form>
 
-        <h2>Download File from MongoDB</h2>
+        <h2>Download File</h2>
         <form action="/download" method="get">
-            <input type="text" name="file_id" placeholder="Enter file ID to download" required>
+            <input type="text" name="file_id" placeholder="File ID" required>
             <br/>
             <button type="submit">Download</button>
         </form>
