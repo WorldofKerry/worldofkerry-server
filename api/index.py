@@ -5,15 +5,22 @@ from flask import Flask, request, jsonify, Response
 from pymongo import MongoClient
 from gridfs import GridFS
 from datetime import datetime, timedelta
+import os
+from dotenv import load_dotenv
+
+load_dotenv(os.path.join(os.path.dirname(__file__), ".env.local"))
+
+MONGODB_URI = os.getenv("MONGODB_URI")
+
+print(f"Mongo URI: {MONGODB_URI}")
 
 app = Flask(__name__)
 
-# MongoDB Atlas connection
-client = MongoClient("mongodb+srv://readwrite:Pk1JnYa1qwo63aac@cluster0.wdytait.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+# client = MongoClient("mongodb+srv://readwrite:Pk1JnYa1qwo63aac@cluster0.wdytait.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+client = MongoClient(MONGODB_URI)
 db = client['file_uploads']
 fs = GridFS(db)
 
-# HTML Template for uploading and downloading files
 @app.route('/')
 def index():
     return '''
@@ -44,7 +51,6 @@ def index():
     </html>
     '''
 
-# Endpoint to handle file upload
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
@@ -69,7 +75,6 @@ def upload_file():
     
     return jsonify({"message": "File uploaded successfully", "file_id": str(file_id)}), 200
 
-# API and Web form route for file download by file_id
 @app.route('/download', methods=['GET'])
 def download_file():
     file_id = request.args.get('file_id') or request.view_args.get('file_id')
