@@ -99,6 +99,11 @@ def download_file():
     except:
         return jsonify({"error": "File not found"}), 404
 
+@app.route('/ping')
+def ping():
+    client.admin.command('ping')
+    return jsonify({"message": "Pong!"}), 200
+
 def delete_old_files():
     while True:
         time_threshold = datetime.now() - timedelta(minutes=60)
