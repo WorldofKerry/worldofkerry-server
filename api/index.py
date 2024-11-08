@@ -1,8 +1,10 @@
-from flask import Flask, request, jsonify, send_file, Response
+import re
+import threading
+import time
+from flask import Flask, request, jsonify, Response
 from pymongo import MongoClient
 from gridfs import GridFS
-import re
-import io
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
@@ -59,8 +61,8 @@ def upload_file():
         if not re.match("^[a-zA-Z0-9]+$", custom_file_id):
             return jsonify({"error": "Invalid file ID. Only alphanumeric characters are allowed."}), 400
         if fs.exists({"_id": custom_file_id}):
-            return jsonify({"error": "File ID already exists. Please choose a different ID."}), 400
-        
+            return jsonify({"error": "File ID already exists. Please choose a different file ID."}), 400
+
         file_id = fs.put(file, _id=custom_file_id, filename=file.filename, content_type=file.content_type)
     else:
         file_id = fs.put(file, filename=file.filename, content_type=file.content_type)
@@ -86,6 +88,23 @@ def download_file():
     except:
         return jsonify({"error": "File not found"}), 404
 
-# Run the app
+def delete_old_files():
+    while True:
+        time_threshold = datetime.now() - timedelta(minutes=10)
+
+        for file in fs.find({"uploadDate": {"$lt": time_threshold}}):
+            fs.delete(file._id)
+            print(f"Deleted file: {file.filename} (ID: {file._id})")
+
+        time.sleep(60)
+
+def start_cleanup_task():
+    cleanup_thread = threading.Thread(target=delete_old_files, daemon=True)
+    cleanup_thread.start()
+
+@app.before_first_request
+def before_first_request():
+    start_cleanup_task()
+
 if __name__ == '__main__':
     app.run(debug=True)
