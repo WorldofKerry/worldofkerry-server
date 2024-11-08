@@ -1,17 +1,17 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, send_file, Response
 from pymongo import MongoClient
 from gridfs import GridFS
-import os
 import re
+import io
 
 app = Flask(__name__)
 
 # MongoDB Atlas connection
-client = MongoClient("mongodb+srv://readwrite:Pk1JnYa1qwo63aac@cluster0.wdytait.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")  # Replace with your MongoDB Atlas URI
-db = client['file_uploads']               # Replace with your database name
+client = MongoClient("mongodb+srv://readwrite:Pk1JnYa1qwo63aac@cluster0.wdytait.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+db = client['file_uploads']
 fs = GridFS(db)
 
-# HTML Template for uploading files
+# HTML Template for uploading and downloading files
 @app.route('/')
 def index():
     return '''
@@ -20,7 +20,7 @@ def index():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Upload File</title>
+        <title>Upload and Download Files</title>
     </head>
     <body>
         <h2>Upload File to MongoDB</h2>
@@ -30,6 +30,13 @@ def index():
             <input type="text" name="file_id" placeholder="Enter custom file ID (optional)">
             <br/>
             <button type="submit">Upload</button>
+        </form>
+
+        <h2>Download File from MongoDB</h2>
+        <form action="/download" method="get">
+            <input type="text" name="file_id" placeholder="Enter file ID to download" required>
+            <br/>
+            <button type="submit">Download</button>
         </form>
     </body>
     </html>
@@ -49,31 +56,36 @@ def upload_file():
 
     # Validate custom file ID
     if custom_file_id:
-        # Check if the ID is alphanumeric and not already used
         if not re.match("^[a-zA-Z0-9]+$", custom_file_id):
             return jsonify({"error": "Invalid file ID. Only alphanumeric characters are allowed."}), 400
         if fs.exists({"_id": custom_file_id}):
             return jsonify({"error": "File ID already exists. Please choose a different ID."}), 400
         
-        # Store file with custom ID
         file_id = fs.put(file, _id=custom_file_id, filename=file.filename, content_type=file.content_type)
     else:
-        # Store file with an automatically generated ID
         file_id = fs.put(file, filename=file.filename, content_type=file.content_type)
     
     return jsonify({"message": "File uploaded successfully", "file_id": str(file_id)}), 200
 
-# Endpoint to download file by ID
-@app.route('/download/<file_id>', methods=['GET'])
-def download_file(file_id):
+# API and Web form route for file download by file_id
+@app.route('/download', methods=['GET'])
+def download_file():
+    file_id = request.args.get('file_id') or request.view_args.get('file_id')
+    if not file_id:
+        return jsonify({"error": "File ID is required"}), 400
+    
     try:
         file = fs.get(file_id)
-        return file.read(), 200, {
-            'Content-Type': file.content_type,
-            'Content-Disposition': f'attachment; filename="{file.filename}"'
-        }
+        return Response(
+            file.read(),
+            mimetype=file.content_type,
+            headers={
+                'Content-Disposition': f'attachment; filename="{file.filename}"'
+            }
+        )
     except:
         return jsonify({"error": "File not found"}), 404
 
+# Run the app
 if __name__ == '__main__':
     app.run(debug=True)
