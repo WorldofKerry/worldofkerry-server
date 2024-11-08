@@ -1,6 +1,8 @@
 import re
 import threading
 import time
+
+import urllib
 from flask import Flask, request, jsonify, Response
 from pymongo import MongoClient
 from gridfs import GridFS
@@ -68,8 +70,8 @@ def upload_file():
 
     # Validate custom file ID
     if custom_file_id:
-        if not re.match("^[a-zA-Z0-9]+$", custom_file_id):
-            return jsonify({"error": "Invalid file ID. Only alphanumeric characters are allowed."}), 400
+        if urllib.parse.quote(custom_file_id) != custom_file_id:
+            return jsonify({"error": f"Invalid file ID. Only valid URI characters allowed. File ID {custom_file_id} becomes {urllib.parse.quote(custom_file_id)}"}), 400
         if fs.exists({"_id": custom_file_id}):
             return jsonify({"error": "File ID already exists. Please choose a different file ID."}), 400
 
