@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 # MongoDB Atlas connection
 client = MongoClient("mongodb+srv://readwrite:Pk1JnYa1qwo63aac@cluster0.wdytait.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")  # Replace with your MongoDB Atlas URI
-db = client['your_database_name']               # Replace with your database name
+db = client['file_uploads']               # Replace with your database name
 fs = GridFS(db)
 
 # HTML Template for uploading files
@@ -25,8 +25,10 @@ def index():
     <body>
         <h2>Upload File to MongoDB</h2>
         <form action="/upload" method="post" enctype="multipart/form-data">
-            <input type="text" name="file_id" placeholder="Enter custom file ID (optional)">
             <input type="file" name="file" required>
+            <br/>
+            <input type="text" name="file_id" placeholder="Enter custom file ID (optional)">
+            <br/>
             <button type="submit">Upload</button>
         </form>
     </body>
