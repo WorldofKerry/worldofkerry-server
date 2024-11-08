@@ -90,7 +90,7 @@ def download_file():
 
 def delete_old_files():
     while True:
-        time_threshold = datetime.now() - timedelta(minutes=10)
+        time_threshold = datetime.now() - timedelta(minutes=60)
 
         for file in fs.find({"uploadDate": {"$lt": time_threshold}}):
             fs.delete(file._id)
