@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template
 from pymongo import MongoClient
 from gridfs import GridFS
 import os
+import re
 
 app = Flask(__name__)
 
@@ -24,6 +25,7 @@ def index():
     <body>
         <h2>Upload File to MongoDB</h2>
         <form action="/upload" method="post" enctype="multipart/form-data">
+            <input type="text" name="file_id" placeholder="Enter custom file ID (optional)">
             <input type="file" name="file" required>
             <button type="submit">Upload</button>
         </form>
@@ -38,12 +40,24 @@ def upload_file():
         return jsonify({"error": "No file part in the request"}), 400
 
     file = request.files['file']
+    custom_file_id = request.form.get('file_id')
     
     if file.filename == '':
         return jsonify({"error": "No file selected for uploading"}), 400
 
-    # Store file in GridFS
-    file_id = fs.put(file, filename=file.filename, content_type=file.content_type)
+    # Validate custom file ID
+    if custom_file_id:
+        # Check if the ID is alphanumeric and not already used
+        if not re.match("^[a-zA-Z0-9]+$", custom_file_id):
+            return jsonify({"error": "Invalid file ID. Only alphanumeric characters are allowed."}), 400
+        if fs.exists({"_id": custom_file_id}):
+            return jsonify({"error": "File ID already exists. Please choose a different ID."}), 400
+        
+        # Store file with custom ID
+        file_id = fs.put(file, _id=custom_file_id, filename=file.filename, content_type=file.content_type)
+    else:
+        # Store file with an automatically generated ID
+        file_id = fs.put(file, filename=file.filename, content_type=file.content_type)
     
     return jsonify({"message": "File uploaded successfully", "file_id": str(file_id)}), 200
 
