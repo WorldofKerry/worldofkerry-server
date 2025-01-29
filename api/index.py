@@ -102,8 +102,8 @@ def download_file():
 @app.route('/ping')
 def ping():
     client.admin.command('ping') # Does this do anything?
-    fs.put(b"", filename="ping")
-    return jsonify({"message": f"pong {request.access_route=} {request.remote_addr=}"}), 200
+    fs.put(b"", filename=f"ping-{request.remote_addr}")
+    return jsonify({"message": f"pong"}), 200
 
 def delete_old_files():
     while True:
