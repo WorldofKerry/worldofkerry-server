@@ -103,7 +103,7 @@ def download_file():
 def ping():
     client.admin.command('ping') # Does this do anything?
     fs.put(b"", filename="ping")
-    return jsonify({"message": f"pong"}), 200
+    return jsonify({"message": f"pong {request.access_route=} {request.remote_addr=}"}), 200
 
 def delete_old_files():
     while True:
