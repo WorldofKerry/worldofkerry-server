@@ -102,7 +102,9 @@ def download_file():
 @app.route('/ping')
 def ping():
     client.admin.command('ping')
-    return jsonify({"message": "Pong!"}), 200
+    current_time_string = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    fs.put(b'', filename=f"ping-{current_time_string}.txt", content_type="text/plain")
+    return jsonify({"message": f"Ping successful at {current_time_string}"}), 200
 
 def delete_old_files():
     while True:
