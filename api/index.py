@@ -70,11 +70,9 @@ def upload_file():
 
     # Validate custom file ID
     if custom_file_id:
-        if urllib.parse.quote(custom_file_id) != custom_file_id:
-            return jsonify({"error": f"Invalid file ID. Only valid URL characters allowed. File ID `{custom_file_id}` becomes `{urllib.parse.quote(custom_file_id)}`"}), 400
+        custom_file_id = urllib.parse.quote(custom_file_id)
         if fs.exists({"_id": custom_file_id}):
             return jsonify({"error": "File ID already exists. Please choose a different file ID."}), 400
-
         file_id = fs.put(file, _id=custom_file_id, filename=file.filename, content_type=file.content_type)
     else:
         file_id = fs.put(file, filename=file.filename, content_type=file.content_type)
