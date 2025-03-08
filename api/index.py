@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
 from flask import send_from_directory
+from bson.objectid import ObjectId
 
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env.local"))
 
@@ -79,7 +80,7 @@ def download_file():
         return jsonify({"error": "File ID is required"}), 400
     
     try:
-        file = fs.get(file_id)
+        file = fs.get(ObjectId(file_id))
         return Response(
             file.read(),
             mimetype=file.content_type,
