@@ -79,7 +79,7 @@ def upload_file():
     else:
         file_id = fs.put(file, filename=file.filename, content_type=file.content_type)
     
-    return jsonify({"message": "File uploaded successfully", "file_id": file_id._id, "download_url": f"https://worldofkerry-server.vercel.app/download?file_id={file_id._id}"}), 200
+    return jsonify({"message": "File uploaded successfully", "file_id": str(repr(file_id)), "download_url": f"https://worldofkerry-server.vercel.app/download?file_id={str(file_id)}"}), 200
 
 @app.route('/download', methods=['GET'])
 def download_file():
