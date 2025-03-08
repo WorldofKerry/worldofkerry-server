@@ -6,10 +6,12 @@ import urllib
 from flask import Flask, request, jsonify, Response
 from pymongo import MongoClient
 from gridfs import GridFS
+from bson import ObjectId
 from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
 from flask import send_from_directory
+from bson.objectid import ObjectId
 
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env.local"))
 
@@ -41,9 +43,6 @@ def index():
         <h2>Upload File</h2>
         <form action="/upload" method="post" enctype="multipart/form-data">
             <input type="file" name="file" required>
-            <br/>
-            <input type="text" name="file_id" placeholder="File ID (optional)">
-            <br/>
             <button type="submit">Upload</button>
         </form>
 
@@ -62,24 +61,14 @@ def upload_file():
     if 'file' not in request.files:
         return jsonify({"error": "No file part in the request"}), 400
 
-    file = request.files['file']
-    custom_file_id = request.form.get('file_id')
-    
+    file = request.files['file']    
+
     if file.filename == '':
         return jsonify({"error": "No file selected for uploading"}), 400
 
-    # Validate custom file ID
-    if custom_file_id:
-        if urllib.parse.quote(custom_file_id) != custom_file_id:
-            return jsonify({"error": f"Invalid file ID. Only valid URL characters allowed. File ID `{custom_file_id}` becomes `{urllib.parse.quote(custom_file_id)}`"}), 400
-        if fs.exists({"_id": custom_file_id}):
-            return jsonify({"error": "File ID already exists. Please choose a different file ID."}), 400
-
-        file_id = fs.put(file, _id=custom_file_id, filename=file.filename, content_type=file.content_type)
-    else:
-        file_id = fs.put(file, filename=file.filename, content_type=file.content_type)
+    file_id = fs.put(file, filename=file.filename, content_type=file.content_type)
     
-    return jsonify({"message": "File uploaded successfully", "file_id": str(repr(file_id)), "download_url": f"https://worldofkerry-server.vercel.app/download?file_id={str(file_id)}"}), 200
+    return jsonify({"message": "File uploaded successfully", "file_id": str(file_id), "download_url": f"https://worldofkerry-server.vercel.app/download?file_id={str(file_id)}"}), 200
 
 @app.route('/download', methods=['GET'])
 def download_file():
@@ -88,7 +77,7 @@ def download_file():
         return jsonify({"error": "File ID is required"}), 400
     
     try:
-        file = fs.get(file_id)
+        file = fs.get(ObjectId(file_id))
         return Response(
             file.read(),
             mimetype=file.content_type,
