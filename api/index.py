@@ -43,9 +43,6 @@ def index():
         <h2>Upload File</h2>
         <form action="/upload" method="post" enctype="multipart/form-data">
             <input type="file" name="file" required>
-            <br/>
-            <input type="text" name="file_id" placeholder="File ID (optional)">
-            <br/>
             <button type="submit">Upload</button>
         </form>
 
