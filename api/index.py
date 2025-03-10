@@ -96,7 +96,7 @@ def ping():
 
 def delete_old_files():
     while True:
-        time_threshold = datetime.now() - timedelta(minutes=60)
+        time_threshold = datetime.now() - timedelta(days=1)
 
         for file in fs.find({"uploadDate": {"$lt": time_threshold}}):
             fs.delete(file._id)
